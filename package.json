@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:gh-pages": "STATIC_EXPORT=1 BASE_PATH=/CarlosRM next build",
+    "build:gh-pages": "STATIC_EXPORT=1 BASE_PATH=/centric-group-site next build",
     "start": "next start",
     "lint": "eslint"
   },
