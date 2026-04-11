@@ -1,30 +1,16 @@
 "use client";
 
-import { siteCopy } from "@/content/siteCopy";
-import { useEffect, useRef } from "react";
+import { Reveal } from "@/components/motion/Reveal";
+import { useLocale } from "@/context/LocaleContext";
 
+/**
+ * Two-strip reel: top plays `reelVideoSrc` forward; bottom plays `reelVideoSrc2`, which should be a
+ * time-reversed encode of the same footage so motion reads backward without negative playbackRate.
+ */
 export function PortfolioReel() {
-  const secondRef = useRef<HTMLVideoElement>(null);
-  const src1 = siteCopy.portfolio.reelVideoSrc;
-  const src2 = siteCopy.portfolio.reelVideoSrc2;
-
-  useEffect(() => {
-    const el = secondRef.current;
-    if (!el || src1 !== src2) return;
-
-    function offset() {
-      const v = secondRef.current;
-      if (!v) return;
-      const d = v.duration;
-      if (d && Number.isFinite(d)) {
-        v.currentTime = d * 0.45;
-      }
-    }
-
-    el.addEventListener("loadedmetadata", offset);
-    if (el.readyState >= 1) offset();
-    return () => el.removeEventListener("loadedmetadata", offset);
-  }, [src1, src2]);
+  const { copy } = useLocale();
+  const src1 = copy.portfolio.reelVideoSrc;
+  const src2 = copy.portfolio.reelVideoSrc2;
 
   return (
     <section
@@ -32,14 +18,16 @@ export function PortfolioReel() {
       aria-labelledby="portfolio-reel-heading"
     >
       <div className="bg-background px-[var(--container-pad)] pb-1 pt-0 text-center md:pb-1.5">
-        <h3
-          id="portfolio-reel-heading"
-          className="text-display text-2xl font-semibold tracking-[-0.02em] text-foreground md:text-3xl lg:text-[2.125rem]"
-        >
-          {siteCopy.portfolio.reelBridgeTitle}
-        </h3>
+        <Reveal from="up">
+          <h3
+            id="portfolio-reel-heading"
+            className="text-display text-2xl font-semibold tracking-[-0.02em] text-foreground md:text-3xl lg:text-[2.125rem]"
+          >
+            {copy.portfolio.reelBridgeTitle}
+          </h3>
+        </Reveal>
       </div>
-      <div className="bg-neutral-950">
+      <div className="bg-reel-chrome">
         <div className="relative flex aspect-video w-full flex-col">
           <div className="relative min-h-0 flex-1 overflow-hidden">
             <video
@@ -52,13 +40,12 @@ export function PortfolioReel() {
               <source src={src1} type="video/mp4" />
             </video>
             <div
-              className="absolute inset-0 hidden bg-gradient-to-br from-neutral-800 via-neutral-900 to-black motion-reduce:block"
+              className="absolute inset-0 hidden bg-gradient-to-br from-reel-chrome via-[#151f32] to-footer motion-reduce:block"
               aria-hidden
             />
           </div>
-          <div className="relative min-h-0 flex-1 overflow-hidden border-t border-white/[0.07]">
+          <div className="relative min-h-0 flex-1 overflow-hidden border-t border-accent/12">
             <video
-              ref={secondRef}
               className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
               autoPlay
               muted
@@ -68,7 +55,7 @@ export function PortfolioReel() {
               <source src={src2} type="video/mp4" />
             </video>
             <div
-              className="absolute inset-0 hidden bg-gradient-to-br from-neutral-900 via-neutral-950 to-black motion-reduce:block"
+              className="absolute inset-0 hidden bg-gradient-to-br from-[#121a2a] via-reel-chrome to-footer motion-reduce:block"
               aria-hidden
             />
           </div>

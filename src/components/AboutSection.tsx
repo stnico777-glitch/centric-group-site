@@ -1,48 +1,65 @@
-import Image from "next/image";
-import { siteCopy } from "@/content/siteCopy";
+"use client";
 
-const portraitSrc =
-  "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80";
+import Image from "next/image";
+import Link from "next/link";
+import { Reveal } from "@/components/motion/Reveal";
+import { useLocale } from "@/context/LocaleContext";
+import { routes } from "@/lib/site";
 
 export function AboutSection() {
+  const { copy } = useLocale();
   return (
     <section
       id="about"
-      className="scroll-mt-24 px-[var(--container-pad)] py-[var(--section-y)]"
+      className="scroll-mt-24 px-[var(--container-pad)] py-[clamp(2.75rem,6vw,4.5rem)]"
       aria-labelledby="about-heading"
     >
-      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[minmax(0,320px)_1fr] lg:items-center lg:gap-16">
-        <div className="relative mx-auto aspect-[4/5] w-full max-w-sm overflow-hidden rounded-2xl bg-neutral-100 lg:mx-0">
-          <Image
-            src={portraitSrc}
-            alt="Carlos — founder of Carlos Media"
-            fill
-            className="object-cover"
-            sizes="(max-width:1024px) 100vw, 320px"
-            priority={false}
-          />
-        </div>
-        <div>
-          <h2
-            id="about-heading"
-            className="text-display text-2xl font-bold text-foreground md:text-3xl"
+      <div className="mx-auto max-w-4xl">
+        <div className="flex min-w-0 flex-col gap-8 lg:flex-row lg:items-center lg:gap-8 xl:gap-10">
+          <Reveal
+            className="flex min-w-0 w-full max-w-[28rem] shrink-0 items-center justify-center self-center sm:max-w-[30rem] lg:max-w-[min(100%,440px)] lg:-translate-x-2 lg:justify-start lg:self-center xl:max-w-[460px] xl:-translate-x-3"
+            from="left"
           >
-            {siteCopy.about.title}
-          </h2>
-          <div className="mt-6 space-y-4 font-sans text-sm leading-relaxed text-muted md:text-base">
-            {siteCopy.about.body.map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-          <p className="mt-6 font-sans text-xs font-medium tracking-[0.22em] text-muted-light uppercase">
-            {siteCopy.about.credentials}
-          </p>
-          <a
-            href="#contact"
-            className="mt-8 inline-flex rounded-full bg-foreground px-8 py-3 font-sans text-xs font-semibold tracking-[0.2em] text-background uppercase transition hover:opacity-90"
-          >
-            {siteCopy.about.cta}
-          </a>
+            <Image
+              src={copy.about.portraitSrc}
+              alt={copy.about.portraitAlt}
+              width={1024}
+              height={571}
+              unoptimized
+              className="h-auto w-full object-contain"
+              sizes="(max-width:1023px) 90vw, 460px"
+              priority
+            />
+          </Reveal>
+
+          <Reveal className="min-w-0 flex-1" from="right" delay={0.08}>
+            <p className="font-sans text-[0.75rem] font-medium tracking-[0.28em] text-accent uppercase">
+              {copy.ui.aboutEyebrow}
+            </p>
+            <h2
+              id="about-heading"
+              className="text-display mt-2 text-3xl font-bold text-foreground md:text-4xl"
+            >
+              {copy.about.title}
+            </h2>
+            <blockquote className="text-display mt-5 border-l-2 border-accent/50 pl-4 text-lg font-medium leading-snug text-foreground/95 md:mt-6 md:pl-5 md:text-xl">
+              {copy.about.quote}
+            </blockquote>
+            <div className="mt-5 space-y-3 font-sans text-sm leading-relaxed text-muted md:mt-6 md:space-y-3.5 md:text-base">
+              {copy.about.body.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+            <p className="mt-4 font-sans text-xs font-medium tracking-[0.22em] text-muted-light uppercase">
+              {copy.about.credentials}
+            </p>
+            <Link
+              href={routes.contact}
+              className="mt-6 inline-flex rounded-full border border-accent/40 bg-accent px-8 py-3 font-sans text-xs font-semibold tracking-[0.2em] text-slate-950 uppercase transition hover:bg-accent/90 hover:ring-1 hover:ring-accent/50 md:mt-7"
+            >
+              {copy.about.cta}
+            </Link>
+          </Reveal>
         </div>
       </div>
     </section>

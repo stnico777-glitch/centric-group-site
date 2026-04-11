@@ -13,13 +13,6 @@ const nextConfig: NextConfig = {
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
   images: {
     unoptimized: staticExport,
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
-    ],
   },
 };
 

@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { siteCopy } from "@/content/siteCopy";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useLocale } from "@/context/LocaleContext";
+import { routes } from "@/lib/site";
 
 function PhoneIcon({ className }: { className?: string }) {
   return (
@@ -22,31 +26,64 @@ function PhoneIcon({ className }: { className?: string }) {
   );
 }
 
-type SiteHeaderProps = {
-  /** Stronger text shadows for white type over bright video */
-  forHero?: boolean;
-};
-
-export function SiteHeader({ forHero = false }: SiteHeaderProps) {
-  const [lang, setLang] = useState<"en" | "es">("en");
+export function SiteHeader() {
+  const pathname = usePathname();
+  const { locale, setLocale, copy } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
-  const fg = forHero ? "text-hero-fg" : "";
+  const [scrolled, setScrolled] = useState(false);
+
+  const onHero = pathname === routes.home;
+  const heroBarClear = onHero && !scrolled;
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const fg = heroBarClear ? "text-hero-fg" : "";
+
+  const navInactive = heroBarClear
+    ? "text-muted-light/95 hover:text-muted-light"
+    : "text-foreground/90 hover:text-foreground";
+
+  const brandClass = heroBarClear
+    ? "text-slate-200 text-hero-fg"
+    : "text-foreground";
+
+  const headerShell = heroBarClear
+    ? "border-b border-transparent bg-transparent"
+    : "border-b border-slate-700/70 bg-slate-800/95 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-slate-800/90";
 
   return (
     <>
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-30 px-[var(--container-pad)] pt-6 md:pt-8">
-        <div className="pointer-events-auto flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start justify-between gap-4 md:block">
-            <a
-              href="/"
-              className={`text-display whitespace-nowrap text-lg font-semibold text-white transition-opacity hover:opacity-80 md:text-xl ${fg}`}
-              aria-label={`${siteCopy.brand} ${siteCopy.tagline} home`}
+      <header
+        className={`fixed inset-x-0 top-0 z-50 px-[var(--container-pad)] pt-4 pb-3 transition-[background-color,backdrop-filter,border-color,box-shadow] duration-300 md:pt-5 md:pb-4 ${headerShell}`}
+      >
+        <div className="pointer-events-auto flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
+          <div className="flex items-center justify-between gap-4 md:block">
+            <Link
+              href={routes.home}
+              className={`text-display inline-flex items-center gap-3 text-[1.125rem] font-semibold leading-tight transition-opacity hover:opacity-90 md:text-[1.3125rem] ${brandClass}`}
+              aria-label={copy.ui.headerBrandHomeAria}
             >
-              {siteCopy.brand} {siteCopy.tagline}
-            </a>
+              <Image
+                src="/brand-nav-compass.png"
+                alt=""
+                width={512}
+                height={512}
+                className="h-9 w-auto shrink-0 object-contain grayscale brightness-[4.25] contrast-[0.6] opacity-100 transition-[filter,opacity] duration-300 md:h-10"
+                priority
+              />
+              <span className="uppercase">{copy.headerBrand}</span>
+            </Link>
             <button
               type="button"
-              className={`flex h-10 w-10 items-center justify-center rounded-full border border-white/30 text-xl font-light text-white transition hover:border-white/60 hover:opacity-90 md:hidden ${fg}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full border text-xl font-light transition md:hidden ${
+                heroBarClear
+                  ? "border-muted-light/35 text-muted-light hover:border-muted-light/55"
+                  : "border-border text-foreground hover:border-accent/35"
+              } ${fg}`}
               aria-expanded={menuOpen}
               aria-controls="mobile-nav"
               onClick={() => setMenuOpen((o) => !o)}
@@ -56,56 +93,85 @@ export function SiteHeader({ forHero = false }: SiteHeaderProps) {
           </div>
 
           <nav
-            className="hidden flex-wrap items-center gap-x-8 gap-y-2 md:flex"
-            aria-label="Primary"
+            className="hidden flex-wrap items-center gap-x-7 gap-y-2 md:flex md:pt-px"
+            aria-label={copy.ui.navAriaPrimary}
           >
-            {siteCopy.nav.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                className={`nav-caps font-sans font-medium text-white transition hover:text-white/95 ${forHero ? "text-white/95" : "text-white/90"} ${fg}`}
-              >
-                {item.label}
-              </a>
-            ))}
+            {copy.nav.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`nav-caps font-sans font-medium transition ${navInactive} ${
+                    active ? "text-accent" : ""
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
-          <div className="hidden flex-col items-end gap-3 md:flex">
-            <div className="flex items-center gap-4">
+          <div className="hidden md:flex md:items-center md:pt-px">
+            <div className="flex items-center gap-4 md:gap-5">
               <div
-                className={`flex items-center gap-1 font-sans text-[11px] font-medium tracking-[0.2em] ${forHero ? "text-white/95" : "text-white/80"} ${fg}`}
+                className={`flex items-center gap-1.5 font-sans text-xs font-medium tracking-[0.2em] ${
+                  heroBarClear ? "text-muted-light/95" : "text-muted"
+                } ${fg}`}
               >
                 <button
                   type="button"
-                  onClick={() => setLang("en")}
-                  className={`transition hover:text-white ${lang === "en" ? "text-white" : "text-white/50"}`}
+                  onClick={() => setLocale("en")}
+                  className={`transition hover:opacity-100 ${
+                    heroBarClear
+                      ? locale === "en"
+                        ? "text-muted-light"
+                        : "text-muted-light/50"
+                      : locale === "en"
+                        ? "text-foreground"
+                        : "text-muted"
+                  }`}
                 >
                   EN
                 </button>
-                <span className="text-white/40">/</span>
+                <span
+                  className={
+                    heroBarClear ? "text-muted-light/40" : "text-border"
+                  }
+                >
+                  /
+                </span>
                 <button
                   type="button"
-                  onClick={() => setLang("es")}
-                  className={`transition hover:text-white ${lang === "es" ? "text-white" : "text-white/50"}`}
+                  onClick={() => setLocale("es")}
+                  className={`transition hover:opacity-100 ${
+                    heroBarClear
+                      ? locale === "es"
+                        ? "text-muted-light"
+                        : "text-muted-light/50"
+                      : locale === "es"
+                        ? "text-foreground"
+                        : "text-muted"
+                  }`}
                 >
                   ES
                 </button>
               </div>
               <a
-                href={`tel:${siteCopy.phoneTel}`}
-                className={`inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 font-sans text-xs font-semibold tracking-wide text-black transition hover:opacity-90 ${forHero ? "shadow-[0_2px_20px_rgba(0,0,0,0.35)]" : ""}`}
+                href={`tel:${copy.phoneTel}`}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-sans text-sm font-semibold leading-none tracking-wide shadow-sm backdrop-blur-md transition ${
+                  heroBarClear
+                    ? "border-muted-light/25 bg-black/10 text-muted-light shadow-[0_2px_24px_rgba(0,0,0,0.35)] hover:border-muted-light/40 hover:bg-black/18"
+                    : "border-border/70 bg-slate-900/40 text-foreground hover:border-accent/30 hover:bg-slate-900/55"
+                }`}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black text-white">
-                  <PhoneIcon className="h-3.5 w-3.5" />
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-slate-950">
+                  <PhoneIcon className="h-4 w-4" />
                 </span>
-                <span className="pr-1">{siteCopy.phoneDisplay}</span>
+                <span className="pr-0.5">{copy.phoneDisplay}</span>
               </a>
             </div>
-            <p
-              className={`max-w-[14rem] text-right font-sans text-[10px] font-medium leading-relaxed tracking-[0.22em] ${forHero ? "text-white/90" : "text-white/70"} ${fg}`}
-            >
-              {siteCopy.headerTagline}
-            </p>
           </div>
         </div>
       </header>
@@ -117,43 +183,49 @@ export function SiteHeader({ forHero = false }: SiteHeaderProps) {
         }`}
         aria-hidden={!menuOpen}
       >
-        <nav className="flex flex-col gap-6" aria-label="Mobile primary">
-          {siteCopy.nav.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="text-display text-2xl font-semibold text-white transition hover:opacity-80"
-              onClick={() => setMenuOpen(false)}
-            >
-              {item.label}
-            </a>
-          ))}
+        <nav className="flex flex-col gap-6" aria-label={copy.ui.navAriaMobile}>
+          {copy.nav.map((item) => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`text-display text-2xl font-semibold transition hover:opacity-80 ${
+                  active ? "text-accent" : "text-muted-light"
+                }`}
+                aria-current={active ? "page" : undefined}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-        <div className="mt-10 flex flex-col gap-4 border-t border-white/15 pt-8">
-          <div className="flex gap-4 font-sans text-sm tracking-[0.2em] text-white/80">
+        <div className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-8">
+          <div className="flex gap-4 font-sans text-sm tracking-[0.2em] text-muted-light/85">
             <button
               type="button"
-              className={lang === "en" ? "text-white" : ""}
-              onClick={() => setLang("en")}
+              className={locale === "en" ? "text-muted-light" : ""}
+              onClick={() => setLocale("en")}
             >
               EN
             </button>
-            <span className="text-white/40">/</span>
+            <span className="text-muted-light/40">/</span>
             <button
               type="button"
-              className={lang === "es" ? "text-white" : ""}
-              onClick={() => setLang("es")}
+              className={locale === "es" ? "text-muted-light" : ""}
+              onClick={() => setLocale("es")}
             >
               ES
             </button>
           </div>
           <a
-            href={`tel:${siteCopy.phoneTel}`}
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-3 font-sans text-sm font-semibold text-black"
+            href={`tel:${copy.phoneTel}`}
+            className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/35 bg-pill-bg px-5 py-3 font-sans text-sm font-semibold text-foreground"
             onClick={() => setMenuOpen(false)}
           >
-            <PhoneIcon className="h-4 w-4 text-black" />
-            {siteCopy.phoneDisplay}
+            <PhoneIcon className="h-4 w-4 text-foreground" />
+            {copy.phoneDisplay}
           </a>
         </div>
       </div>

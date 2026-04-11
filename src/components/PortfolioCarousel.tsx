@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useRef } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import {
+  Reveal,
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/components/motion/Reveal";
 
 export type PortfolioCardItem = {
   src: string;
@@ -76,7 +83,8 @@ export function PortfolioCarousel({
   navNextLabel,
   priorityCount = 2,
 }: PortfolioCarouselProps) {
-  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const reduce = useReducedMotion();
 
   const scrollByDir = useCallback((dir: -1 | 1) => {
     const el = scrollerRef.current;
@@ -91,7 +99,7 @@ export function PortfolioCarousel({
     <>
       <div className="px-[var(--container-pad)]">
         <header className="mb-8 flex items-end justify-between gap-6 md:mb-10">
-          <div className="min-w-0">
+          <Reveal className="min-w-0" from="left">
             <h2
               id={headingId}
               className="text-display text-2xl font-bold text-foreground md:text-4xl"
@@ -101,11 +109,11 @@ export function PortfolioCarousel({
             <p className="mt-2 max-w-xl font-sans text-sm text-muted md:text-base">
               {subtitle}
             </p>
-          </div>
-          <div className="flex shrink-0 gap-2">
+          </Reveal>
+          <Reveal className="flex shrink-0 gap-2" from="right" delay={0.06}>
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 transition hover:bg-neutral-300 active:scale-95 md:h-11 md:w-11"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-pill-bg text-foreground transition hover:border-accent/35 hover:bg-surface-muted active:scale-95 md:h-11 md:w-11"
               aria-label={navPrevLabel}
               onClick={() => scrollByDir(-1)}
             >
@@ -113,59 +121,112 @@ export function PortfolioCarousel({
             </button>
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-neutral-800 transition hover:bg-neutral-300 active:scale-95 md:h-11 md:w-11"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-pill-bg text-foreground transition hover:border-accent/35 hover:bg-surface-muted active:scale-95 md:h-11 md:w-11"
               aria-label={navNextLabel}
               onClick={() => scrollByDir(1)}
             >
               <ChevronRight />
             </button>
-          </div>
+          </Reveal>
         </header>
       </div>
 
-      <div
-        ref={scrollerRef}
-        className="flex gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[var(--container-pad)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory"
-        tabIndex={0}
-        role="region"
-        aria-label={regionAriaLabel}
-      >
-        {cards.map((item, i) => (
-          <article
-            key={item.src + i}
-            data-carousel-card
-            className="relative w-[min(78vw,420px)] shrink-0 snap-start overflow-hidden bg-neutral-200"
-            style={{ aspectRatio: "4 / 5" }}
-          >
-            <Image
-              src={item.src}
-              alt={item.alt}
-              fill
-              sizes="(max-width:768px) 78vw, 420px"
-              className="object-cover"
-              priority={i < priorityCount}
-            />
-            <div
-              className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
-              aria-hidden
-            />
-            <div className="absolute inset-x-0 bottom-0 flex flex-col items-start p-6 md:p-8">
-              <p className="font-sans text-xs font-semibold tracking-[0.22em] text-white/90 uppercase">
-                {item.category}
-              </p>
-              <h3 className="text-display mt-1 text-xl font-bold leading-tight text-white md:text-2xl">
-                {item.title}
-              </h3>
-              <a
-                href={item.href}
-                className="pointer-events-auto mt-4 inline-flex items-center justify-center rounded-full border border-white/40 bg-white/15 px-6 py-2.5 font-sans text-xs font-semibold tracking-[0.2em] text-white uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] backdrop-blur-md backdrop-saturate-150 transition hover:border-white/55 hover:bg-white/25 hover:backdrop-blur-lg"
-              >
-                {item.cta}
-              </a>
-            </div>
-          </article>
-        ))}
-      </div>
+      {reduce ? (
+        <div
+          ref={scrollerRef}
+          className="flex gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[var(--container-pad)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory"
+          tabIndex={0}
+          role="region"
+          aria-label={regionAriaLabel}
+        >
+          {cards.map((item, i) => (
+            <article
+              key={item.src + i}
+              data-carousel-card
+              className="relative w-[min(78vw,420px)] shrink-0 snap-start overflow-hidden bg-surface-muted"
+              style={{ aspectRatio: "4 / 5" }}
+            >
+              <Image
+                src={item.src}
+                alt={item.alt}
+                fill
+                sizes="(max-width:768px) 78vw, 420px"
+                className="object-cover"
+                priority={i < priorityCount}
+              />
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+                aria-hidden
+              />
+              <div className="absolute inset-x-0 bottom-0 flex flex-col items-start p-6 md:p-8">
+                <p className="font-sans text-xs font-semibold tracking-[0.22em] text-muted-light/95 uppercase">
+                  {item.category}
+                </p>
+                <h3 className="text-display mt-1 text-xl font-bold leading-tight text-muted-light md:text-2xl">
+                  {item.title}
+                </h3>
+                <Link
+                  href={item.href}
+                  className="pointer-events-auto mt-4 inline-flex items-center justify-center rounded-full border border-accent/45 bg-muted-light/12 px-6 py-2.5 font-sans text-xs font-semibold tracking-[0.2em] text-muted-light uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md backdrop-saturate-150 transition hover:border-accent/65 hover:bg-muted-light/18 hover:backdrop-blur-lg"
+                >
+                  {item.cta}
+                </Link>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <motion.div
+          ref={scrollerRef}
+          className="flex gap-4 overflow-x-auto overscroll-x-contain scroll-smooth px-[var(--container-pad)] pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory"
+          tabIndex={0}
+          role="region"
+          aria-label={regionAriaLabel}
+          variants={staggerContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          {cards.map((item, i) => (
+            <motion.article
+              key={item.src + i}
+              data-carousel-card
+              variants={staggerItemVariants}
+              whileHover={{ y: -5, scale: 1.015 }}
+              transition={{ type: "spring", stiffness: 420, damping: 26 }}
+              className="relative w-[min(78vw,420px)] shrink-0 snap-start overflow-hidden bg-surface-muted shadow-[0_8px_28px_rgba(0,0,0,0.2)] transition-shadow duration-200 hover:shadow-[0_18px_48px_rgba(0,0,0,0.35)]"
+              style={{ aspectRatio: "4 / 5" }}
+            >
+              <Image
+                src={item.src}
+                alt={item.alt}
+                fill
+                sizes="(max-width:768px) 78vw, 420px"
+                className="object-cover"
+                priority={i < priorityCount}
+              />
+              <div
+                className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent"
+                aria-hidden
+              />
+              <div className="absolute inset-x-0 bottom-0 flex flex-col items-start p-6 md:p-8">
+                <p className="font-sans text-xs font-semibold tracking-[0.22em] text-muted-light/95 uppercase">
+                  {item.category}
+                </p>
+                <h3 className="text-display mt-1 text-xl font-bold leading-tight text-muted-light md:text-2xl">
+                  {item.title}
+                </h3>
+                <Link
+                  href={item.href}
+                  className="pointer-events-auto mt-4 inline-flex items-center justify-center rounded-full border border-accent/45 bg-muted-light/12 px-6 py-2.5 font-sans text-xs font-semibold tracking-[0.2em] text-muted-light uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-md backdrop-saturate-150 transition hover:border-accent/65 hover:bg-muted-light/18 hover:backdrop-blur-lg"
+                >
+                  {item.cta}
+                </Link>
+              </div>
+            </motion.article>
+          ))}
+        </motion.div>
+      )}
     </>
   );
 }

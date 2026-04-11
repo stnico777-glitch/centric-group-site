@@ -1,21 +1,24 @@
+"use client";
+
 import { PortfolioCarousel } from "@/components/PortfolioCarousel";
-import { portfolioCards, siteCopy } from "@/content/siteCopy";
+import { useLocale } from "@/context/LocaleContext";
 
 export function PortfolioSection() {
+  const { copy, portfolioCards } = useLocale();
   return (
     <section
-      id="portfolio"
+      id="projects"
       className="scroll-mt-24 bg-background pb-3 pt-6 md:pb-4 md:pt-8"
       aria-labelledby="portfolio-heading"
     >
       <PortfolioCarousel
         cards={portfolioCards}
-        title={siteCopy.portfolio.title}
-        subtitle={siteCopy.portfolio.subtitle}
+        title={copy.portfolio.title}
+        subtitle={copy.portfolio.subtitle}
         headingId="portfolio-heading"
-        regionAriaLabel="Portfolio projects carousel"
-        navPrevLabel="Scroll portfolio left"
-        navNextLabel="Scroll portfolio right"
+        regionAriaLabel={copy.ui.portfolioCarouselRegion}
+        navPrevLabel={copy.ui.portfolioCarouselPrev}
+        navNextLabel={copy.ui.portfolioCarouselNext}
         priorityCount={2}
       />
     </section>

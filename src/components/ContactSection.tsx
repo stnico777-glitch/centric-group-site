@@ -1,61 +1,100 @@
-import { siteCopy } from "@/content/siteCopy";
+"use client";
+
+import Link from "next/link";
+import { LocationMap } from "@/components/LocationMap";
+import { QuoteRequestForm } from "@/components/QuoteRequestForm";
+import { IconMail, IconMapPin, IconPhone } from "@/components/icons/ThemeIcons";
+import { useLocale } from "@/context/LocaleContext";
+import { routes } from "@/lib/site";
 
 export function ContactSection() {
+  const { copy } = useLocale();
   return (
     <footer
-      id="contact"
-      className="scroll-mt-24 border-t border-border bg-foreground px-[var(--container-pad)] py-[var(--section-y)] text-background"
+      id="footer"
+      className="scroll-mt-24 border-t border-white/10 bg-footer px-[var(--container-pad)] py-[var(--section-y)] text-foreground"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-12 md:grid-cols-2 md:gap-8">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-10 lg:items-start">
           <div>
             <h2 className="text-display text-2xl font-bold md:text-3xl">
-              {siteCopy.contact.title}
+              {copy.contact.title}
             </h2>
-            <p className="mt-4 max-w-md font-sans text-sm leading-relaxed text-white/75">
-              {siteCopy.contact.body}
+            <p className="mt-4 max-w-md font-sans text-sm leading-relaxed text-foreground/80">
+              {copy.contact.body}
             </p>
             <p
               id="location"
-              className="mt-6 scroll-mt-24 font-sans text-sm text-white/60"
+              className="mt-6 flex scroll-mt-24 items-center gap-2 font-sans text-sm text-foreground/65"
             >
-              <span className="font-semibold text-white">
-                {siteCopy.footer.location}
+              <IconMapPin className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+              <span className="font-semibold text-foreground">
+                {copy.footer.location}
               </span>
             </p>
-          </div>
-          <div className="flex flex-col gap-4 md:items-end md:text-right">
-            <a
-              href={`mailto:${siteCopy.contact.email}`}
-              className="font-sans text-lg font-medium tracking-tight text-white transition hover:opacity-80"
-            >
-              {siteCopy.contact.email}
-            </a>
-            <a
-              href={`tel:${siteCopy.phoneTel}`}
-              className="font-sans text-sm tracking-wide text-white/80 transition hover:text-white"
-            >
-              {siteCopy.phoneDisplay}
-            </a>
-            <div className="mt-4 flex gap-6 font-sans text-xs tracking-[0.2em] text-white/50">
+            <div className="mt-8 flex flex-col gap-4">
               <a
-                href="#portfolio"
-                className="transition hover:text-white"
+                href={`mailto:${copy.contact.email}`}
+                className="inline-flex items-center gap-2 font-sans text-lg font-medium tracking-tight text-foreground transition hover:opacity-80"
               >
-                Portfolio
+                <IconMail className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                {copy.contact.email}
               </a>
-              <a href="#offers" className="transition hover:text-white">
-                Offers
-              </a>
-              <a href="#about" className="transition hover:text-white">
-                About
+              <a
+                href={`tel:${copy.phoneTel}`}
+                className="inline-flex items-center gap-2 font-sans text-sm tracking-wide text-foreground/80 transition hover:text-foreground"
+              >
+                <IconPhone className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                {copy.phoneDisplay}
               </a>
             </div>
           </div>
+          <div className="flex justify-center lg:justify-end">
+            <QuoteRequestForm variant="vision" idPrefix="footer-quote" />
+          </div>
         </div>
-        <div className="mt-16 flex flex-col gap-2 border-t border-white/15 pt-8 font-sans text-xs text-white/45 md:flex-row md:items-center md:justify-between">
-          <span>© {new Date().getFullYear()} {siteCopy.footer.rights}</span>
-          <span className="tracking-wide">{siteCopy.footer.location}</span>
+
+        <nav
+          className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-10 font-sans text-xs tracking-[0.2em] text-foreground/55"
+          aria-label={copy.ui.footerNavAria}
+        >
+          {copy.nav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="transition hover:text-foreground"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="mt-14 border-t border-white/10 pt-12 md:mt-16">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <h2 className="flex items-center gap-2 text-display text-lg font-semibold text-foreground md:text-xl">
+              <IconMapPin className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+              {copy.footer.mapHeading}
+            </h2>
+            <Link
+              href={routes.location}
+              className="font-sans text-xs font-medium tracking-[0.18em] text-accent transition hover:underline"
+            >
+              {copy.footer.mapLinkLabel}
+            </Link>
+          </div>
+          <div className="mt-5">
+            <LocationMap
+              src={copy.locationPage.mapEmbedSrc}
+              title={copy.ui.mapIframeTitle}
+              caption={copy.locationPage.mapCaption}
+              className="border-white/12 bg-white/[0.04] ring-white/10"
+            />
+          </div>
+        </div>
+
+        <div className="mt-16 flex flex-col gap-2 border-t border-accent/15 pt-8 font-sans text-xs text-foreground/50 md:flex-row md:items-center md:justify-between">
+          <span>© {new Date().getFullYear()} {copy.footer.rights}</span>
+          <span className="tracking-wide">{copy.footer.location}</span>
         </div>
       </div>
     </footer>

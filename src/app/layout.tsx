@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { ContactSection } from "@/components/ContactSection";
+import { SiteHeader } from "@/components/SiteHeader";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { HtmlLangSync, LocaleProvider } from "@/context/LocaleContext";
+import { rootMetadata } from "@/lib/metadata";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -8,30 +13,13 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "600", "700"],
 });
 
-const syne = Syne({
-  variable: "--font-syne",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Carlos Media — Miami Luxury Real Estate Media",
-  description:
-    "Cinematic listing media, architectural storytelling, and campaign films for Miami’s most considered properties.",
-  openGraph: {
-    title: "Carlos Media — Miami Luxury Real Estate Media",
-    description:
-      "Cinematic listing media and architectural storytelling in Miami.",
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Carlos Media — Miami Luxury Real Estate Media",
-    description:
-      "Cinematic listing media and architectural storytelling in Miami.",
-  },
-};
+export const metadata: Metadata = rootMetadata();
 
 export default function RootLayout({
   children,
@@ -41,10 +29,16 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${syne.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${cormorant.variable} h-full antialiased`}
     >
-      <body className="font-sans min-h-full flex flex-col overflow-x-hidden bg-background text-foreground">
-        {children}
+      <body className="font-sans flex min-h-full flex-col overflow-x-hidden bg-background text-foreground">
+        <LocaleProvider>
+          <HtmlLangSync />
+          <JsonLd />
+          <SiteHeader />
+          {children}
+          <ContactSection />
+        </LocaleProvider>
       </body>
     </html>
   );

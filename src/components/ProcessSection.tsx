@@ -1,0 +1,174 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
+import {
+  IconClipboardCheck,
+  IconCompass,
+  IconDoorOpen,
+  IconHammer,
+  IconPenLine,
+} from "@/components/icons/ThemeIcons";
+import {
+  Reveal,
+  staggerContainerVariants,
+  staggerItemVariants,
+} from "@/components/motion/Reveal";
+import { useLocale } from "@/context/LocaleContext";
+import { routes } from "@/lib/site";
+
+const processIcons = [
+  IconCompass,
+  IconPenLine,
+  IconHammer,
+  IconClipboardCheck,
+  IconDoorOpen,
+] as const;
+
+const stepCardClass =
+  "flex flex-col gap-3 rounded-2xl border border-border/80 bg-pill-bg/40 p-6 shadow-sm transition-[box-shadow,transform,border-color,background-color] duration-200 hover:border-accent/25 hover:bg-pill-bg/70 hover:shadow-[0_14px_36px_rgba(0,0,0,0.22)] lg:pt-8";
+
+export function ProcessSection() {
+  const { copy } = useLocale();
+  const { process: p } = copy;
+  const reduce = useReducedMotion();
+
+  return (
+    <section
+      id="process"
+      className="scroll-mt-24 border-t border-border bg-background px-[var(--container-pad)] py-[var(--section-y)]"
+      aria-labelledby="process-heading"
+    >
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-4 md:mb-6">
+          <div className="relative mx-auto flex min-h-[14rem] min-w-0 flex-col items-center justify-center px-2 py-4 sm:min-h-[15rem] md:min-h-[17rem]">
+            <Image
+              src="/process-hardhat.png"
+              alt=""
+              width={1024}
+              height={571}
+              className="pointer-events-none absolute left-1/2 top-[22%] z-0 h-[min(15rem,78vw)] w-auto max-w-none -translate-x-1/2 -translate-y-1/2 bg-transparent object-contain opacity-90 sm:h-[min(17rem,72vw)] md:top-[18%] md:h-[min(20rem,58vw)]"
+              sizes="(max-width: 768px) 78vw, 58vw"
+              priority
+            />
+            <Reveal
+              className="relative z-10 flex w-full max-w-2xl flex-col items-center pt-6 text-center sm:pt-7 md:pt-8"
+              from="up"
+            >
+              <p className="font-sans text-[0.75rem] font-medium tracking-[0.28em] text-accent uppercase drop-shadow-[0_1px_8px_rgba(0,0,0,0.85)]">
+                {p.eyebrow}
+              </p>
+              <h2
+                id="process-heading"
+                className="text-display mt-3 text-3xl font-bold leading-tight text-foreground drop-shadow-[0_2px_4px_rgba(0,0,0,0.9),0_8px_32px_rgba(0,0,0,0.55)] md:text-4xl"
+              >
+                {p.title}
+              </h2>
+              <p className="mx-auto mt-4 max-w-2xl rounded-lg bg-background/55 px-3 py-2 font-sans text-sm leading-relaxed text-muted-light backdrop-blur-sm md:bg-background/45 md:text-base">
+                {p.subtitle}
+              </p>
+            </Reveal>
+          </div>
+        </header>
+
+        <div className="relative">
+          <div
+            className="pointer-events-none absolute left-4 right-4 top-[1.35rem] hidden h-px lg:block lg:left-[6%] lg:right-[6%] lg:top-10"
+            aria-hidden
+          >
+            <div className="h-full bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+          </div>
+
+          {reduce ? (
+            <ol className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-4">
+              {p.steps.map((step, i) => {
+                const StepIcon = processIcons[i] ?? IconCompass;
+                return (
+                  <li key={step.title} className={stepCardClass}>
+                    <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:gap-4">
+                      <span
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-background text-accent shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
+                        aria-hidden
+                      >
+                        <StepIcon className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1 lg:text-left">
+                        <p className="font-mono text-[0.65rem] font-semibold tabular-nums text-muted">
+                          {String(i + 1).padStart(2, "0")}
+                        </p>
+                        <h3 className="text-display mt-1 text-lg font-semibold leading-snug text-foreground">
+                          {step.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="font-sans text-sm leading-relaxed text-muted">
+                      {step.description}
+                    </p>
+                  </li>
+                );
+              })}
+            </ol>
+          ) : (
+            <motion.ol
+              className="relative grid gap-8 md:grid-cols-2 lg:grid-cols-5 lg:gap-4"
+              variants={staggerContainerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.12 }}
+            >
+              {p.steps.map((step, i) => {
+                const StepIcon = processIcons[i] ?? IconCompass;
+                return (
+                  <motion.li
+                    key={step.title}
+                    variants={staggerItemVariants}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 24 }}
+                    className={stepCardClass}
+                  >
+                    <div className="flex items-center gap-3 lg:flex-col lg:items-start lg:gap-4">
+                      <span
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-background text-accent shadow-[0_0_0_1px_rgba(0,0,0,0.2)]"
+                        aria-hidden
+                      >
+                        <StepIcon className="h-5 w-5" />
+                      </span>
+                      <div className="min-w-0 flex-1 lg:text-left">
+                        <p className="font-mono text-[0.65rem] font-semibold tabular-nums text-muted">
+                          {String(i + 1).padStart(2, "0")}
+                        </p>
+                        <h3 className="text-display mt-1 text-lg font-semibold leading-snug text-foreground">
+                          {step.title}
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="font-sans text-sm leading-relaxed text-muted">
+                      {step.description}
+                    </p>
+                  </motion.li>
+                );
+              })}
+            </motion.ol>
+          )}
+        </div>
+
+        <Reveal
+          className="mt-12 flex flex-col items-center justify-center gap-6 border-t border-border/60 pt-10 text-center md:flex-row md:gap-10 md:text-left"
+          from="up"
+          delay={0.06}
+        >
+          <p className="max-w-xl font-sans text-xs font-medium tracking-[0.18em] text-muted-light uppercase">
+            {p.trustLine}
+          </p>
+          <Link
+            href={routes.contact}
+            className="shrink-0 rounded-full border border-accent/40 bg-accent px-6 py-2.5 font-sans text-xs font-semibold tracking-[0.2em] text-slate-950 uppercase transition hover:bg-accent/90"
+          >
+            {copy.ui.processCta}
+          </Link>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
