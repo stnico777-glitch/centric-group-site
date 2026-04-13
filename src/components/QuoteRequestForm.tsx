@@ -81,8 +81,27 @@ export type QuoteRequestFormProps = {
 
 type SubmitState = "idle" | "sending" | "success" | "error";
 
-/** FormSubmit — delivers to `copy.contact.email` with no API key (confirm inbox once on first use). */
+/** FormSubmit fallback — must activate via email FormSubmit sends to the recipient address. */
 const FORMSUBMIT_AJAX = "https://formsubmit.co/ajax";
+/** Web3Forms (recommended): create a free key at https://web3forms.com and set NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY in Vercel. */
+const WEB3FORMS_SUBMIT = "https://api.web3forms.com/submit";
+
+function parseRemoteFormError(data: unknown): string | null {
+  if (!data || typeof data !== "object") return null;
+  const d = data as Record<string, unknown>;
+  if (typeof d.message === "string" && d.message.trim()) return d.message.trim();
+  const body = d.body;
+  if (body && typeof body === "object") {
+    const m = (body as Record<string, unknown>).message;
+    if (typeof m === "string" && m.trim()) return m.trim();
+  }
+  return null;
+}
+
+function isTruthySuccess(value: unknown): boolean {
+  if (value === true) return true;
+  return String(value).toLowerCase() === "true";
+}
 
 function QuoteLoadingOverlay({
   variant,
@@ -134,50 +153,87 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
   const [zip, setZip] = useState("");
   const [projectType, setProjectType] = useState("");
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [submitErrorDetail, setSubmitErrorDetail] = useState<string | null>(null);
 
   const inputInner = variant === "vision" ? inputInnerVision : inputInnerFooter;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitState("sending");
+    setSubmitErrorDetail(null);
 
     const typeLabel =
       v.quoteProjectTypes.find((o) => o.value === projectType)?.label ??
       projectType;
 
-    const endpoint = `${FORMSUBMIT_AJAX}/${encodeURIComponent(copy.contact.email)}`;
+    const messageBody = [
+      `${copy.ui.quoteEmailName}: ${name}`,
+      `${copy.ui.quoteEmailEmail}: ${email}`,
+      `${copy.ui.quoteEmailPhone}: ${phone}`,
+      `${copy.ui.quoteEmailZip}: ${zip}`,
+      `${copy.ui.quoteEmailProjectType}: ${typeLabel || copy.ui.quoteEmailNotSelected}`,
+    ].join("\n");
+
+    const web3Key = process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY?.trim();
 
     try {
-      const res = await fetch(endpoint, {
+      if (web3Key) {
+        const res = await fetch(WEB3FORMS_SUBMIT, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            access_key: web3Key,
+            subject: copy.ui.quoteEmailSubject,
+            name,
+            email,
+            phone,
+            zip,
+            project_type: typeLabel || copy.ui.quoteEmailNotSelected,
+            message: messageBody,
+            replyto: email,
+            from_name: name || "Centric Group lead",
+            botcheck: "",
+          }),
+        });
+
+        const data = await res.json().catch(() => null);
+        if (res.ok && data && isTruthySuccess((data as { success?: unknown }).success)) {
+          setSubmitState("success");
+          setName("");
+          setEmail("");
+          setPhone("");
+          setZip("");
+          setProjectType("");
+          return;
+        }
+
+        setSubmitErrorDetail(parseRemoteFormError(data) ?? null);
+        setSubmitState("error");
+        return;
+      }
+
+      const recipient = copy.contact.email.trim().toLowerCase();
+      const fd = new FormData();
+      fd.append("name", name);
+      fd.append("email", email);
+      fd.append("phone", phone);
+      fd.append("zip", zip);
+      fd.append("project_type", typeLabel || copy.ui.quoteEmailNotSelected);
+      fd.append("message", messageBody);
+      fd.append("_subject", copy.ui.quoteEmailSubject);
+      fd.append("_replyto", email);
+      fd.append("_captcha", "false");
+
+      const res = await fetch(`${FORMSUBMIT_AJAX}/${encodeURIComponent(recipient)}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          zip,
-          project_type: typeLabel || copy.ui.quoteEmailNotSelected,
-          _subject: copy.ui.quoteEmailSubject,
-          _replyto: email,
-          _captcha: false,
-        }),
+        body: fd,
       });
 
-      const data = (await res.json().catch(() => null)) as {
-        success?: boolean | string;
-        message?: string;
-      } | null;
-
-      const succeeded =
-        res.ok &&
-        data != null &&
-        (data.success === true ||
-          String(data.success).toLowerCase() === "true");
-
-      if (succeeded) {
+      const data = await res.json().catch(() => null);
+      if (res.ok && data != null && isTruthySuccess((data as { success?: unknown }).success)) {
         setSubmitState("success");
         setName("");
         setEmail("");
@@ -187,6 +243,7 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
         return;
       }
 
+      setSubmitErrorDetail(parseRemoteFormError(data) ?? null);
       setSubmitState("error");
     } catch {
       setSubmitState("error");
@@ -200,6 +257,7 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
       onInput={() => {
         if (submitState === "success" || submitState === "error") {
           setSubmitState("idle");
+          setSubmitErrorDetail(null);
         }
       }}
       className={
@@ -362,7 +420,7 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
       </div>
 
       {(submitState === "success" || submitState === "error") && (
-        <motion.p
+        <motion.div
           key={submitState === "success" ? "ok" : "err"}
           role="status"
           aria-live="polite"
@@ -375,10 +433,23 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
               : `mt-3 font-sans text-[13px] leading-snug sm:text-sm ${submitState === "success" ? "text-emerald-300/95" : "text-red-300/95"}`
           }
         >
-          {submitState === "success"
-            ? copy.ui.quoteSubmitSuccess
-            : copy.ui.quoteSubmitError}
-        </motion.p>
+          <p>
+            {submitState === "success"
+              ? copy.ui.quoteSubmitSuccess
+              : copy.ui.quoteSubmitError}
+          </p>
+          {submitState === "error" && submitErrorDetail && (
+            <p
+              className={
+                variant === "vision"
+                  ? "mt-2 font-sans text-xs leading-snug text-red-800/90"
+                  : "mt-2 font-sans text-xs leading-snug text-red-200/85"
+              }
+            >
+              {submitErrorDetail}
+            </p>
+          )}
+        </motion.div>
       )}
 
       <button
