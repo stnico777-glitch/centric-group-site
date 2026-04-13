@@ -4,8 +4,12 @@ import { defaultDescription, defaultTitle, siteUrl } from "@/lib/site";
 /** Default link previews (Open Graph / Twitter). */
 export const defaultBrandImage = "/logo-centric-group.png";
 
-/** Favicons: `src/app/icon.png` + `apple-icon.png` (Centric Group logo). Next injects `<link rel="icon">` automatically. */
-
+/**
+ * Favicons for the tab bar / bookmarks come from the App Router file convention:
+ * `src/app/icon.png` and `src/app/apple-icon.png` (see Next.js metadata icons).
+ * Avoid duplicating `metadata.icons` with a different `/public` path — Chrome
+ * often used `/favicon.ico` first; a stale `favicon.ico` was overriding the PNG.
+ */
 export function rootMetadata(): Metadata {
   return {
     metadataBase: new URL(siteUrl),
