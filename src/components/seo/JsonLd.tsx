@@ -12,7 +12,7 @@ export function JsonLd() {
       name: "Centric Group",
       description: defaultDescription,
       url: siteUrl,
-      telephone: "+1-305-555-0142",
+      telephone: "+1-305-205-4016",
       areaServed: {
         "@type": "AdministrativeArea",
         name: "Florida",

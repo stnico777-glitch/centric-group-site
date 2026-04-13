@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LocationMap } from "@/components/LocationMap";
 import { QuoteRequestForm } from "@/components/QuoteRequestForm";
 import { IconMail, IconMapPin, IconPhone } from "@/components/icons/ThemeIcons";
@@ -9,53 +10,58 @@ import { routes } from "@/lib/site";
 
 export function ContactSection() {
   const { copy } = useLocale();
+  const pathname = usePathname();
+  const isContactPage = pathname === routes.contact;
+
   return (
     <footer
       id="footer"
       className="scroll-mt-24 border-t border-white/10 bg-footer px-[var(--container-pad)] py-[var(--section-y)] text-foreground"
     >
       <div className="mx-auto max-w-6xl">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-10 lg:items-start">
-          <div>
-            <h2 className="text-display text-2xl font-bold md:text-3xl">
-              {copy.contact.title}
-            </h2>
-            <p className="mt-4 max-w-md font-sans text-sm leading-relaxed text-foreground/80">
-              {copy.contact.body}
-            </p>
-            <p
-              id="location"
-              className="mt-6 flex scroll-mt-24 items-center gap-2 font-sans text-sm text-foreground/65"
-            >
-              <IconMapPin className="h-4 w-4 shrink-0 text-accent" aria-hidden />
-              <span className="font-semibold text-foreground">
-                {copy.footer.location}
-              </span>
-            </p>
-            <div className="mt-8 flex flex-col gap-4">
-              <a
-                href={`mailto:${copy.contact.email}`}
-                className="inline-flex items-center gap-2 font-sans text-lg font-medium tracking-tight text-foreground transition hover:opacity-80"
+        {!isContactPage && (
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-10 lg:items-start">
+            <div>
+              <h2 className="text-display text-2xl font-bold md:text-3xl">
+                {copy.contact.title}
+              </h2>
+              <p className="mt-4 max-w-md font-sans text-sm leading-relaxed text-foreground/80">
+                {copy.contact.body}
+              </p>
+              <p
+                id="location"
+                className="mt-6 flex scroll-mt-24 items-center gap-2 font-sans text-sm text-foreground/65"
               >
-                <IconMail className="h-5 w-5 shrink-0 text-accent" aria-hidden />
-                {copy.contact.email}
-              </a>
-              <a
-                href={`tel:${copy.phoneTel}`}
-                className="inline-flex items-center gap-2 font-sans text-sm tracking-wide text-foreground/80 transition hover:text-foreground"
-              >
-                <IconPhone className="h-4 w-4 shrink-0 text-accent" aria-hidden />
-                {copy.phoneDisplay}
-              </a>
+                <IconMapPin className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                <span className="font-semibold text-foreground">
+                  {copy.footer.location}
+                </span>
+              </p>
+              <div className="mt-8 flex flex-col gap-4">
+                <a
+                  href={`mailto:${copy.contact.email}`}
+                  className="inline-flex items-center gap-2 font-sans text-lg font-medium tracking-tight text-foreground transition hover:opacity-80"
+                >
+                  <IconMail className="h-5 w-5 shrink-0 text-accent" aria-hidden />
+                  {copy.contact.email}
+                </a>
+                <a
+                  href={`tel:${copy.phoneTel}`}
+                  className="inline-flex items-center gap-2 font-sans text-sm tracking-wide text-foreground/80 transition hover:text-foreground"
+                >
+                  <IconPhone className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                  {copy.phoneDisplay}
+                </a>
+              </div>
+            </div>
+            <div className="flex justify-center lg:justify-end">
+              <QuoteRequestForm variant="vision" idPrefix="footer-quote" />
             </div>
           </div>
-          <div className="flex justify-center lg:justify-end">
-            <QuoteRequestForm variant="vision" idPrefix="footer-quote" />
-          </div>
-        </div>
+        )}
 
         <nav
-          className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-10 font-sans text-xs tracking-[0.2em] text-foreground/55"
+          className={`flex flex-wrap gap-x-6 gap-y-2 border-t border-white/10 pt-10 font-sans text-xs tracking-[0.2em] text-foreground/55 ${isContactPage ? "" : "mt-12"}`}
           aria-label={copy.ui.footerNavAria}
         >
           {copy.nav.map((item) => (

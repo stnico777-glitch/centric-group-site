@@ -78,6 +78,11 @@ export type QuoteRequestFormProps = {
   idPrefix: string;
 };
 
+type SubmitState = "idle" | "sending" | "success" | "error";
+
+/** FormSubmit — delivers to `copy.contact.email` with no API key (confirm inbox once on first use). */
+const FORMSUBMIT_AJAX = "https://formsubmit.co/ajax";
+
 export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
   const { copy } = useLocale();
   const v = copy.vision;
@@ -86,11 +91,11 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
   const [phone, setPhone] = useState("");
   const [zip, setZip] = useState("");
   const [projectType, setProjectType] = useState("");
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
   const inputInner = variant === "vision" ? inputInnerVision : inputInnerFooter;
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function openMailtoFallback() {
     const subject = encodeURIComponent(copy.ui.quoteEmailSubject);
     const typeLabel =
       v.quoteProjectTypes.find((o) => o.value === projectType)?.label ??
@@ -107,9 +112,71 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
     window.location.href = `mailto:${copy.contact.email}?subject=${subject}&body=${body}`;
   }
 
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitState("sending");
+
+    const typeLabel =
+      v.quoteProjectTypes.find((o) => o.value === projectType)?.label ??
+      projectType;
+
+    const endpoint = `${FORMSUBMIT_AJAX}/${encodeURIComponent(copy.contact.email)}`;
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          zip,
+          project_type: typeLabel || copy.ui.quoteEmailNotSelected,
+          _subject: copy.ui.quoteEmailSubject,
+          _replyto: email,
+          _captcha: false,
+        }),
+      });
+
+      const data = (await res.json().catch(() => null)) as {
+        success?: boolean | string;
+        message?: string;
+      } | null;
+
+      const succeeded =
+        res.ok &&
+        data != null &&
+        (data.success === true ||
+          String(data.success).toLowerCase() === "true");
+
+      if (succeeded) {
+        setSubmitState("success");
+        setName("");
+        setEmail("");
+        setPhone("");
+        setZip("");
+        setProjectType("");
+        return;
+      }
+
+      setSubmitState("error");
+    } catch {
+      openMailtoFallback();
+      setSubmitState("idle");
+    }
+  }
+
   const formBody = (
     <form
       onSubmit={handleSubmit}
+      onInput={() => {
+        if (submitState === "success" || submitState === "error") {
+          setSubmitState("idle");
+        }
+      }}
       className={
         variant === "vision"
           ? "relative z-10 flex w-full flex-col px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-3.5 md:px-6 md:pb-6 md:pt-4"
@@ -263,15 +330,32 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
         </div>
       </div>
 
+      {(submitState === "success" || submitState === "error") && (
+        <p
+          role="status"
+          aria-live="polite"
+          className={
+            variant === "vision"
+              ? `mt-3 font-sans text-[13px] leading-snug ${submitState === "success" ? "text-emerald-800" : "text-red-700"}`
+              : `mt-3 font-sans text-[13px] leading-snug ${submitState === "success" ? "text-emerald-300/95" : "text-red-300/95"}`
+          }
+        >
+          {submitState === "success"
+            ? copy.ui.quoteSubmitSuccess
+            : copy.ui.quoteSubmitError}
+        </p>
+      )}
+
       <button
         type="submit"
+        disabled={submitState === "sending"}
         className={
           variant === "vision"
-            ? "mt-3 w-full shrink-0 rounded-full bg-accent px-4 py-2.5 text-center font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-accent/90 sm:py-3"
-            : "mt-4 w-full shrink-0 rounded-full bg-accent px-4 py-3 text-center font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-950 shadow-[0_8px_28px_rgba(196,168,90,0.25)] transition hover:bg-accent/90"
+            ? "mt-3 w-full shrink-0 rounded-full bg-accent px-4 py-2.5 text-center font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-950 transition hover:bg-accent/90 enabled:cursor-pointer enabled:hover:bg-accent/90 disabled:cursor-wait disabled:opacity-70 sm:py-3"
+            : "mt-4 w-full shrink-0 rounded-full bg-accent px-4 py-3 text-center font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-950 shadow-[0_8px_28px_rgba(196,168,90,0.25)] transition enabled:cursor-pointer enabled:hover:bg-accent/90 disabled:cursor-wait disabled:opacity-70"
         }
       >
-        {v.quoteCta}
+        {submitState === "sending" ? copy.ui.quoteSubmitting : v.quoteCta}
       </button>
     </form>
   );

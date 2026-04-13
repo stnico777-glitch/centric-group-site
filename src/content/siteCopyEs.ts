@@ -57,8 +57,8 @@ export const siteCopyEs: SiteCopy = {
       },
     ],
   },
-  phoneDisplay: "+1 (305) 555-0142",
-  phoneTel: "+13055550142",
+  phoneDisplay: "+1 (305) 205-4016",
+  phoneTel: "+13052054016",
   heroLeadingMark: "",
   hero: {
     subhead:
@@ -201,7 +201,7 @@ export const siteCopyEs: SiteCopy = {
       "Cuéntanos sobre tus planos, permisos o próximo proyecto de cocina, baño, azulejo o yeso: te responderemos con los siguientes pasos.",
     quoteLead:
       "Planos, permisos o remodelación: respondemos con los siguientes pasos.",
-    email: "hello@centricgroup.com",
+    email: "Centricgroup.us@gmail.com",
   },
   locationPage: {
     title: "Ubicación y zona de servicio",
@@ -277,6 +277,11 @@ export const siteCopyEs: SiteCopy = {
     quoteEmailZip: "CP",
     quoteEmailProjectType: "Tipo de proyecto",
     quoteEmailNotSelected: "(no seleccionado)",
+    quoteSubmitting: "Enviando…",
+    quoteSubmitSuccess:
+      "Gracias — recibimos tu solicitud y nos pondremos en contacto pronto.",
+    quoteSubmitError:
+      "No pudimos enviar el mensaje. Inténtalo de nuevo o escríbenos por correo.",
   },
 };
 
