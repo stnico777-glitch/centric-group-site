@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { defaultDescription, defaultTitle, siteUrl } from "@/lib/site";
 
-/** Tab / home-screen icon */
-const tabIcon = "/brand-nav-compass.png";
-
 /** Default link previews (Open Graph / Twitter). */
 export const defaultBrandImage = "/logo-centric-group.png";
+
+/** Favicons: `src/app/icon.png` + `apple-icon.png` (Centric Group logo). Next injects `<link rel="icon">` automatically. */
 
 export function rootMetadata(): Metadata {
   return {
@@ -15,10 +14,6 @@ export function rootMetadata(): Metadata {
       template: "%s | Centric Group",
     },
     description: defaultDescription,
-    icons: {
-      icon: [{ url: tabIcon, type: "image/png" }],
-      apple: [{ url: tabIcon, type: "image/png" }],
-    },
     openGraph: {
       title: defaultTitle,
       description: defaultDescription,
