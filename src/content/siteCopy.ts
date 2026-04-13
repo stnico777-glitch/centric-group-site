@@ -283,7 +283,8 @@ export const siteCopy = {
     quoteEmailProjectType: "Project type",
     quoteEmailNotSelected: "(not selected)",
     quoteSubmitting: "Sending…",
-    quoteSubmitSuccess: "Thanks — we received your request and will follow up soon.",
+    quoteSubmitLoadingHint: "Sending your request",
+    quoteSubmitSuccess: "We will be in contact shortly.",
     quoteSubmitError:
       "We couldn’t send that just now. Please try again or email us directly.",
   },

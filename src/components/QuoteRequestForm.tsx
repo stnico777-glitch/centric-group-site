@@ -3,6 +3,7 @@
 import type { ComponentType, ReactNode } from "react";
 import Image from "next/image";
 import { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import {
   IconFileText,
   IconLayers,
@@ -83,9 +84,50 @@ type SubmitState = "idle" | "sending" | "success" | "error";
 /** FormSubmit — delivers to `copy.contact.email` with no API key (confirm inbox once on first use). */
 const FORMSUBMIT_AJAX = "https://formsubmit.co/ajax";
 
+function QuoteLoadingOverlay({
+  variant,
+  label,
+}: {
+  variant: "vision" | "footer";
+  label: string;
+}) {
+  const reduce = useReducedMotion();
+  const panel =
+    variant === "vision"
+      ? "bg-pill-bg/93 backdrop-blur-md ring-1 ring-slate-900/20"
+      : "bg-[#05080f]/90 backdrop-blur-md ring-1 ring-white/10";
+
+  return (
+    <motion.div
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: reduce ? 0 : 0.22 }}
+      className={`absolute inset-0 z-[40] flex flex-col items-center justify-center gap-4 px-6 ${panel}`}
+    >
+      <div
+        className="h-11 w-11 rounded-full border-2 border-accent/25 border-t-accent motion-reduce:border-accent/60 motion-reduce:animate-none animate-spin"
+        aria-hidden
+      />
+      <p
+        className={
+          variant === "vision"
+            ? "font-sans text-sm font-medium tracking-wide text-slate-800"
+            : "font-sans text-sm font-medium tracking-wide text-foreground/90"
+        }
+      >
+        {label}
+      </p>
+    </motion.div>
+  );
+}
+
 export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
   const { copy } = useLocale();
   const v = copy.vision;
+  const reduce = useReducedMotion();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -94,23 +136,6 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
 
   const inputInner = variant === "vision" ? inputInnerVision : inputInnerFooter;
-
-  function openMailtoFallback() {
-    const subject = encodeURIComponent(copy.ui.quoteEmailSubject);
-    const typeLabel =
-      v.quoteProjectTypes.find((o) => o.value === projectType)?.label ??
-      projectType;
-    const body = encodeURIComponent(
-      [
-        `${copy.ui.quoteEmailName}: ${name}`,
-        `${copy.ui.quoteEmailEmail}: ${email}`,
-        `${copy.ui.quoteEmailPhone}: ${phone}`,
-        `${copy.ui.quoteEmailZip}: ${zip}`,
-        `${copy.ui.quoteEmailProjectType}: ${typeLabel || copy.ui.quoteEmailNotSelected}`,
-      ].join("\n"),
-    );
-    window.location.href = `mailto:${copy.contact.email}?subject=${subject}&body=${body}`;
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -164,14 +189,14 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
 
       setSubmitState("error");
     } catch {
-      openMailtoFallback();
-      setSubmitState("idle");
+      setSubmitState("error");
     }
   }
 
   const formBody = (
     <form
       onSubmit={handleSubmit}
+      aria-busy={submitState === "sending"}
       onInput={() => {
         if (submitState === "success" || submitState === "error") {
           setSubmitState("idle");
@@ -179,10 +204,16 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
       }}
       className={
         variant === "vision"
-          ? "relative z-10 flex w-full flex-col px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-3.5 md:px-6 md:pb-6 md:pt-4"
-          : "relative z-10 flex w-full flex-col px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5"
+          ? `relative z-10 flex w-full flex-col overflow-hidden px-4 pb-4 pt-3 sm:px-5 sm:pb-5 sm:pt-3.5 md:px-6 md:pb-6 md:pt-4 ${submitState === "sending" ? "min-h-[min(15rem,48vh)]" : ""}`
+          : `relative z-10 flex w-full flex-col overflow-hidden px-5 pb-5 pt-4 sm:px-6 sm:pb-6 sm:pt-5 ${submitState === "sending" ? "min-h-[min(15rem,48vh)]" : ""}`
       }
     >
+      {submitState === "sending" && (
+        <QuoteLoadingOverlay
+          variant={variant}
+          label={`${copy.ui.quoteSubmitLoadingHint}…`}
+        />
+      )}
       <div
         className={
           variant === "vision"
@@ -331,19 +362,23 @@ export function QuoteRequestForm({ variant, idPrefix }: QuoteRequestFormProps) {
       </div>
 
       {(submitState === "success" || submitState === "error") && (
-        <p
+        <motion.p
+          key={submitState === "success" ? "ok" : "err"}
           role="status"
           aria-live="polite"
+          initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
           className={
             variant === "vision"
-              ? `mt-3 font-sans text-[13px] leading-snug ${submitState === "success" ? "text-emerald-800" : "text-red-700"}`
-              : `mt-3 font-sans text-[13px] leading-snug ${submitState === "success" ? "text-emerald-300/95" : "text-red-300/95"}`
+              ? `mt-3 font-sans text-[13px] leading-snug sm:text-sm ${submitState === "success" ? "text-emerald-800" : "text-red-700"}`
+              : `mt-3 font-sans text-[13px] leading-snug sm:text-sm ${submitState === "success" ? "text-emerald-300/95" : "text-red-300/95"}`
           }
         >
           {submitState === "success"
             ? copy.ui.quoteSubmitSuccess
             : copy.ui.quoteSubmitError}
-        </p>
+        </motion.p>
       )}
 
       <button

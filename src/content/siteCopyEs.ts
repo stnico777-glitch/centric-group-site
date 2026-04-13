@@ -278,8 +278,8 @@ export const siteCopyEs: SiteCopy = {
     quoteEmailProjectType: "Tipo de proyecto",
     quoteEmailNotSelected: "(no seleccionado)",
     quoteSubmitting: "Enviando…",
-    quoteSubmitSuccess:
-      "Gracias — recibimos tu solicitud y nos pondremos en contacto pronto.",
+    quoteSubmitLoadingHint: "Enviando tu solicitud",
+    quoteSubmitSuccess: "Nos pondremos en contacto en breve.",
     quoteSubmitError:
       "No pudimos enviar el mensaje. Inténtalo de nuevo o escríbenos por correo.",
   },
